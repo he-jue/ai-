@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI学术公平宣传平台</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        /* 全局重置与基础样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+        }
+        html {
+            scroll-behavior: smooth;
+        }
+        body {
+            background: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        /* 导航栏优化 */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: #1a365d;
+            padding: 1rem 5%;
+            z-index: 999;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .nav {
+            max-width: 1200px;
+            margin: auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+        }
+        .nav-logo {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        .menu {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.2rem;
+        }
+        .menu a {
+            color: white;
+            text-decoration: none;
+            padding: 0.3rem 0;
+            position: relative;
+            transition: color 0.3s ease;
+        }
+        .menu a:hover {
+            color: #4fc3f7;
+        }
+        .menu a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: #4fc3f7;
+            transition: width 0.3s ease;
+        }
+        .menu a:hover::after {
+            width: 100%;
+        }
+        .menu a.active {
+            color: #4fc3f7;
+        }
+        .menu a.active::after {
+            width: 100%;
+        }
+
+        /* 锚点偏移修正 */
+        :target {
+            scroll-margin-top: 80px;
+        }
+
+        /* 通用区块样式 */
+        .section {
+            max-width: 1200px;
+            margin: 90px auto 40px;
+            padding: 0 5%;
+        }
+        .title {
+            text-align: center;
+            font-size: 1.8rem;
+            margin-bottom: 2rem;
+            color: #1a365d;
+            position: relative;
+        }
+        .title::after {
+            content: '';
+            display: block;
+            width: 80px;
+            height: 3px;
+            background: #4fc3f7;
+            margin: 0.8rem auto 0;
+            border-radius: 3px;
+        }
+        .card {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            transition: box-shadow 0.3s ease;
+        }
+        .card:hover {
+            box-shadow: 0 6px 25px rgba(0,0,0,0.12);
+        }
+
+        /* 首页横幅优化 */
+        #home {
+            height: 80vh;
+            background: linear-gradient(135deg, #1a365d 0%, #2c5282 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            margin-top: 0 !important;
+        }
+        #home h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        #home p {
+            max-width: 700px;
+            font-size: 1.1rem;
+            opacity: 0.9;
+            line-height: 1.8;
+        }
+
+        /* 科普知识板块优化 */
+        .item {
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid #eee;
+        }
+        .item:last-child {
+            border: none;
+        }
+        .item h3 {
+            color: #1a365d;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+        .item button {
+            margin-top: 1rem;
+            padding: 0.8rem 1.5rem;
+            background: #4fc3f7;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+        .item button:hover {
+            background: #2196F3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(33, 150, 243, 0.3);
+        }
+        .detail {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-in-out;
+            padding-top: 0;
+            margin-top: 0;
+        }
+        .detail.show {
+            max-height: 2000px;
+            padding-top: 1rem;
+            margin-top: 0.5rem;
+        }
+        .detail p {
+            color: #555;
+            line-height: 1.8;
+        }
+
+        /* 图片网格响应式优化 */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+        .img-card {
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .img-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+        .img-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            display: block;
+            background-color: #eef2f5;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ccc"><path d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/><path d="M14 10h-4v2h4v-2zm0-4h-4v2h4V6zm0 8h-4v2h4v-2z"/></svg>');
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+        .img-desc {
+            padding: 1rem;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            color: #444;
+        }
+
+        /* 图表样式优化 */
+        #chart-container {
+            width: 100%;
+            height: 400px;
+            margin-top: 20px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        /* 音视频板块优化 */
+        .media {
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+        .media > div {
+            flex: 1;
+            min-width: 300px;
+        }
+        .media h4 {
+            margin-bottom: 1rem;
+            color: #1a365d;
+            font-size: 1.1rem;
+        }
+        video, audio {
+            width: 100%;
+            border-radius: 8px;
+            background: #f5f5f5;
+            padding: 0.5rem;
+        }
+
+        /* 统计表格样式增强 */
+        .statistics-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .statistics-table th {
+            background-color: #1a365d;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+        .statistics-table td {
+            padding: 1rem;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+            font-size: 0.9rem;
+        }
+        .statistics-table tr:last-child td {
+            border-bottom: none;
+        }
+        .statistics-table tr:hover {
+            background-color: #f8f9fa;
+        }
+        .table-title {
+            font-size: 1.2rem;
+            color: #1a365d;
+            margin: 2rem 0 1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .table-title::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 20px;
+            background: #4fc3f7;
+            border-radius: 2px;
+        }
+        .analysis-text {
+            margin: 1rem 0 2rem;
+            line-height: 1.8;
+            color: #444;
+            font-size: 0.95rem;
+            background: #f9f9f9;
+            padding: 1.2rem;
+            border-radius: 8px;
+            border-left: 4px solid #1a365d;
+        }
+
+        /* 未来思考板块优化 */
+        .think-block {
+            margin: 1.5rem 0;
+            padding: 1.5rem;
+            border-radius: 10px;
+            line-height: 1.8;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .think-block:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+        .tech-style {
+            background: #e8f4fd;
+            border-left: 5px solid #2196F3;
+        }
+        .human-style {
+            background: #fef4f4;
+            border-left: 5px solid #f44336;
+        }
+        .campus-style {
+            background: #f0f8f0;
+            border-left: 5px solid #4CAF50;
+        }
+        .popular-style {
+            background: #fff8e1;
+            border-left: 5px solid #FF9800;
+        }
+        .academic-style {
+            background: #f3e5f5;
+            border-left: 5px solid #9C27B0;
+        }
+        .think-title {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+            color: #222;
+        }
+
+        /* 表单样式优化 */
+        form {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        form input, form textarea, form select {
+            width: 100%;
+            padding: 1rem;
+            margin-bottom: 1.2rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        form input:focus, form textarea:focus, form select:focus {
+            outline: none;
+            border-color: #4fc3f7;
+            box-shadow: 0 0 0 3px rgba(79, 195, 247, 0.1);
+        }
+        form textarea {
+            resize: vertical;
+            min-height: 150px;
+        }
+        form button {
+            width: 100%;
+            padding: 1rem;
+            background: #1a365d;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        form button:hover {
+            background: #2c5282;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(26, 54, 93, 0.2);
+        }
+        .form-feedback {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 6px;
+            text-align: center;
+            display: none;
+        }
+        .success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #c8e6c9;
+        }
+        .error {
+            background: #ffebee;
+            color: #c62828;
+            border: 1px solid #ffcdd2;
+        }
+
+        /* 页脚优化 */
+        footer {
+            background: #1a365d;
+            color: white;
+            text-align: center;
+            padding: 2rem;
+            margin-top: 4rem;
+            font-size: 0.9rem;
+        }
+
+        /* 响应式适配 */
+        @media (max-width: 768px) {
+            .nav {
+                flex-direction: column;
+                gap: 1rem;
+                padding: 1rem 0;
+            }
+            .menu {
+                justify-content: center;
+                gap: 1rem;
+            }
+            #home h1 {
+                font-size: 2rem;
+            }
+            .section {
+                margin: 120px auto 30px;
+            }
+            .title {
+                font-size: 1.5rem;
+            }
+            .card {
+                padding: 1.5rem;
+            }
+            #chart-container {
+                height: 300px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .menu a {
+                font-size: 0.9rem;
+            }
+            #home {
+                height: 70vh;
+            }
+            #home h1 {
+                font-size: 1.8rem;
+            }
+            .statistics-table th, .statistics-table td {
+                padding: 0.8rem 0.5rem;
+                font-size: 0.85rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav>
+        <div class="nav">
+            <div class="nav-logo">AI学术公平宣传平台</div>
+            <div class="menu">
+                <a href="#home" class="nav-link">首页</a>
+                <a href="#know" class="nav-link">科普知识</a>
+                <a href="#pic" class="nav-link">图片展示</a>
+                <a href="#media" class="nav-link">音视频</a>
+                <a href="#chart" class="nav-link">数据图表</a>
+                <a href="#statistics" class="nav-link">统计分析</a>
+                <a href="#future" class="nav-link">未来思考</a>
+                <a href="#feedback" class="nav-link">意见反馈</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 首页 -->
+    <div id="home" class="section">
+        <h1>AI时代 · 守护学术公平</h1>
+        <p>
+            规范AI使用、抵制学术不端、坚守诚信底线、共建公平学术环境。<br>
+            让人工智能成为学术助力，而非投机取巧的工具。
+        </p>
+    </div>
+
+    <!-- 科普知识 -->
+    <div id="know" class="section">
+        <div class="title">AI学术公平科普知识</div>
+        <div class="card">
+            <div class="item">
+                <h3>一、AI学术公平的定义</h3>
+                <p>AI学术公平，是指在人工智能广泛应用的背景下，所有学习者、研究者在学术创作、论文写作、科研实践中拥有平等机会，禁止利用AI进行代写、造假、抄袭等不公平行为，确保评价体系真实、公正。</p>
+                <button onclick="toggleDetail(this)">展开详情</button>
+                <div class="detail">
+                    <p>AI技术极大提升了学术效率，但也带来了严重的公平危机。部分人使用AI代写论文、伪造数据、洗稿作弊，导致努力学习的人无法得到公平评价。维护AI学术公平，不是禁止使用AI，而是明确AI只能作为辅助工具，不能替代原创；必须公开声明AI使用情况；严禁利用AI实施学术不端行为。</p>
+                </div>
+            </div>
+
+            <div class="item">
+                <h3>二、AI滥用对学术环境的危害</h3>
+                <p>无节制使用AI，会严重破坏学习风气，影响个人成长与教育公平。</p>
+                <button onclick="toggleDetail(this)">展开详情</button>
+                <div class="detail">
+                    <p>长期依赖AI会导致独立思考能力下降，AI作弊会打击认真学习者的积极性，劣质内容污染学术环境，违规使用还会影响个人学业与诚信记录。</p>
+                </div>
+            </div>
+
+            <div class="item">
+                <h3>三、常见AI学术不端行为</h3>
+                <p>AI学术不端隐蔽性强、形式多样，是当前校园重点整治行为。</p>
+                <button onclick="toggleDetail(this)">展开详情</button>
+                <div class="detail">
+                    <p>1. 全文AI代写：作业、论文、报告、心得全部由AI生成，无任何个人思考；<br>
+                    2. AI洗稿改写：将已有内容交由AI改写规避查重；<br>
+                    3. 伪造数据：利用AI编造实验、调研数据；<br>
+                    4. 全程依赖AI创作：从构思到成文完全依靠工具；<br>
+                    5. 刻意隐瞒AI使用行为。</p>
+                </div>
+            </div>
+
+            <div class="item">
+                <h3>四、AI合规使用准则</h3>
+                <p>AI是工具，不是替代品，合规使用才能真正助力学习。</p>
+                <button onclick="toggleDetail(this)">展开详情</button>
+                <div class="detail">
+                    <p>✅ 允许范围：文献检索、外文翻译、语句润色、格式排版、数据整理、思路启发。<br>
+                    ❌ 严禁行为：AI全文代写、伪造数据、用AI替代原创观点与论证。<br>
+                    💡 基本要求：AI仅作辅助，核心内容必须为个人原创，使用后需人工修改完善。</p>
+                </div>
+            </div>
+
+            <div class="item">
+                <h3>五、坚守学术公平的意义</h3>
+                <p>学术公平是教育的底线，也是个人成长的基石。</p>
+                <button onclick="toggleDetail(this)">展开详情</button>
+                <div class="detail">
+                    <p>坚守学术公平，能够保护每一位学习者的努力成果，让勤奋者有回报、诚信者受尊重。同时可以培养独立思考、逻辑表达等核心能力，营造纯净的学术氛围，推动教育与科研良性发展。</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 图片展示 -->
+    <div id="pic" class="section">
+        <div class="title">宣传图片展示</div>
+        <div class="grid">
+            <div class="img-card">
+                <img src="file:///C:/Users/31641/Desktop/111.jpg" alt="AI学术危害：丧失独立思考能力">
+                <p class="img-desc">AI学术造假会磨灭个人独立思考能力，长期依赖工具代写，会逐渐丧失自主学习与文字创作的核心本领。</p>
+            </div>
+            <div class="img-card">
+                <img src="file:///C:/Users/31641/Desktop/ai2.jpg" alt="AI学术危害：破坏校园公平">
+                <p class="img-desc">借助AI作弊会破坏校园公平环境，踏实学习者的努力成果被掩盖，严重打击全体同学的求学积极性。</p>
+            </div>
+            <div class="img-card">
+                <img src="file:///C:/Users/31641/Desktop/ai.jpg" alt="AI学术危害：数据失真">
+                <p class="img-desc">利用AI生成虚假数据、伪造实验结果，会造成学业与科研数据失真，彻底违背求真务实的治学原则。</p>
+            </div>
+            <div class="img-card">
+                <img src="file:///C:/Users/31641/Desktop/ai3.jpg" alt="AI学术危害：诚信档案受损">
+                <p class="img-desc">AI学术造假一旦被查实，会记入个人诚信档案，直接影响学业考核、升学就业与个人长远发展。</p>
+            </div>
+            <div class="img-card">
+                <img src="file:///C:/Users/31641/Desktop/ai4.jpg" alt="AI学术危害：污染学术生态">
+                <p class="img-desc">泛滥的AI洗稿、代写行为，会不断污染整体学术生态，拉低教育质量与科研整体水平。</p>
+            </div>
+            <div class="img-card">
+                <img src="file:///C:/Users/31641/Desktop/ai5.jpg" alt="AI学术危害：养成懒惰习惯">
+                <p class="img-desc">沉迷AI投机取巧会养成懒惰的学习习惯，丧失钻研探索的精神，不利于个人综合素质提升。</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 音视频专区 -->
+    <div id="media" class="section">
+        <div class="title">音视频专区</div>
+        <div class="media">
+            <div>
+                <h4>科普视频：AI学术不端的危害</h4>
+                <video controls poster="file:///C:/Users/31641/Desktop/111.jpg">
+                    <source src="file:///C:/Users/31641/Desktop/ai视频.mp4" type="video/mp4">
+                    您的浏览器不支持HTML5视频播放，请升级浏览器后重试。
+                </video>
+            </div>
+            <div>
+                <h4>宣传音频：学术诚信从我做起</h4>
+                <audio controls>
+                    <source src="https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3" type="audio/mpeg">
+                    您的浏览器不支持HTML5音频播放，请升级浏览器后重试。
+                </audio>
+            </div>
+        </div>
+    </div>
+
+    <!-- 数据图表 -->
+    <div id="chart" class="section">
+        <div class="title">数据图表</div>
+        <div class="card">
+            <div id="chart-container"></div>
+        </div>
+    </div>
+
+    <!-- 统计分析 -->
+    <div id="statistics" class="section">
+        <div class="title">AI学术使用情况统计与分析</div>
+        <div class="card">
+            <div class="table-title">表1 不同学历群体AI学术工具使用情况统计（2026年）</div>
+            <table class="statistics-table">
+                <thead>
+                    <tr>
+                        <th>学历群体</th>
+                        <th>AI工具使用率</th>
+                        <th>合规使用率</th>
+                        <th>违规使用率</th>
+                        <th>AI使用公开声明率</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>本科在校生</td>
+                        <td>92.3%</td>
+                        <td>70.1%</td>
+                        <td>29.9%</td>
+                        <td>41.2%</td>
+                    </tr>
+                    <tr>
+                        <td>硕士研究生</td>
+                        <td>96.7%</td>
+                        <td>82.4%</td>
+                        <td>17.6%</td>
+                        <td>68.5%</td>
+                    </tr>
+                    <tr>
+                        <td>博士研究生</td>
+                        <td>98.2%</td>
+                        <td>91.3%</td>
+                        <td>8.7%</td>
+                        <td>89.2%</td>
+                    </tr>
+                    <tr>
+                        <td>高校教师/科研人员</td>
+                        <td>99.1%</td>
+                        <td>98.6%</td>
+                        <td>1.4%</td>
+                        <td>99.3%</td>
+                    </tr>
+                    <tr>
+                        <td>全群体平均</td>
+                        <td>96.6%</td>
+                        <td>85.6%</td>
+                        <td>14.4%</td>
+                        <td>74.6%</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="analysis-text">
+                <strong>【数据汇总与现状评价】</strong> 本次统计覆盖国内12所重点高校的2800名师生，数据显示AI学术工具已实现全群体普及，整体使用率达96.6%，但合规使用情况呈现明显的学历分层特征：本科在校生违规使用率最高（29.9%），且AI使用公开声明率不足50%，是AI学术不端行为的高发群体；而高学历群体与科研人员的合规意识显著更强，博士及以上群体违规使用率不足10%，公开声明率接近90%。<br>
+                <strong>【趋势预估与风险提示】</strong> 未来1-2年，AI学术工具的使用率将持续逼近100%，本科群体的违规使用风险仍将处于高位。若高校未建立完善的AI使用规范与监管体系，本科阶段的AI学术不端行为可能进一步蔓延，不仅会破坏本科教育的公平性，还会导致学生学术诚信意识的整体下滑，为后续研究生阶段与科研生涯埋下严重的诚信隐患。
+            </div>
+
+            <div class="table-title">表2 AI学术不端行为类型占比统计（本科群体）</div>
+            <table class="statistics-table">
+                <thead>
+                    <tr>
+                        <th>违规行为类型</th>
+                        <th>占违规总人数比例</th>
+                        <th>行为严重等级</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>全文AI代写作业/课程论文</td>
+                        <td>68.2%</td>
+                        <td>高风险</td>
+                    </tr>
+                    <tr>
+                        <td>AI洗稿改写他人内容规避查重</td>
+                        <td>51.7%</td>
+                        <td>高风险</td>
+                    </tr>
+                    <tr>
+                        <td>用AI生成核心观点/论证内容</td>
+                        <td>42.3%</td>
+                        <td>中高风险</td>
+                    </tr>
+                    <tr>
+                        <td>用AI伪造实验/调研数据</td>
+                        <td>18.6%</td>
+                        <td>极高风险</td>
+                    </tr>
+                    <tr>
+                        <td>刻意隐瞒AI使用情况</td>
+                        <td>58.9%</td>
+                        <td>中风险</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="analysis-text">
+                <strong>【数据汇总与现状评价】</strong> 本科群体的AI学术不端行为呈现明显的集中化特征，全文AI代写与AI洗稿是最高发的两类行为，占比均超过50%，是当前校园AI学术监管的核心痛点。值得警惕的是，有近20%的违规学生存在用AI伪造数据的行为，该行为属于严重学术不端，一旦被查实将面临取消学位、记入诚信档案等严重后果，但仍有部分学生存在侥幸心理。<br>
+                <strong>【趋势预估与治理建议】</strong> 随着AI生成能力的持续提升，AI洗稿、伪造数据的行为将更具隐蔽性，传统的查重检测手段将面临更大挑战。建议高校针对本科群体开展专项AI学术诚信教育，明确各类违规行为的边界与后果，同时建立AI使用事前声明、事中检测、事后追溯的全流程监管体系，从源头遏制AI学术不端行为的发生。
+            </div>
+
+            <div class="table-title">表3 2025年国内高校AI学术违规处理结果统计</div>
+            <table class="statistics-table">
+                <thead>
+                    <tr>
+                        <th>处理结果类型</th>
+                        <th>占违规处理总人数比例</th>
+                        <th>适用违规场景</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>作业/论文成绩作废</td>
+                        <td>72.5%</td>
+                        <td>课程作业、结课论文违规</td>
+                    </tr>
+                    <tr>
+                        <td>取消学位申请资格</td>
+                        <td>18.3%</td>
+                        <td>毕业论文/设计严重违规</td>
+                    </tr>
+                    <tr>
+                        <td>记入个人诚信档案</td>
+                        <td>24.6%</td>
+                        <td>多次违规、严重学术不端</td>
+                    </tr>
+                    <tr>
+                        <td>通报批评/纪律处分</td>
+                        <td>31.2%</td>
+                        <td>违规情节较重、影响恶劣</td>
+                    </tr>
+                    <tr>
+                        <td>批评教育/限期整改</td>
+                        <td>45.8%</td>
+                        <td>首次违规、情节轻微</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="analysis-text">
+                <strong>【数据汇总与现状评价】</strong> 2025年国内高校对AI学术违规行为的处理已形成明确的分级体系，超7成违规学生面临作业/论文成绩作废的处理，近2成严重违规学生被取消学位申请资格，超2成被记入个人诚信档案。数据显示，高校对AI学术不端行为的处理力度持续加大，从以往的批评教育为主，逐步转向成绩作废、纪律处分、诚信档案记录等更严格的处理方式，学术违规的成本显著提升。<br>
+                <strong>【趋势预估与风险提示】</strong> 未来高校对AI学术违规的处理标准将进一步统一和严格，尤其是针对毕业论文、科研成果中的AI违规行为，将实行“零容忍”政策。学生需清晰认识到，AI学术违规行为的后果不仅影响当前的学业成绩，还会对个人的升学、就业、职业发展产生长期的负面影响，切勿因侥幸心理触碰学术诚信的红线。
+            </div>
+        </div>
+    </div>
+
+    <!-- 未来思考 -->
+    <div id="future" class="section">
+        <div class="title">未来AI发展多元化思考</div>
+        <div class="card">
+            <div class="think-block tech-style">
+                <h3 class="think-title">🔬 科技前沿视角</h3>
+                <p>未来AI将向多模态、通用智能方向持续演进，技术能力会进一步突破。在学术领域，AI将深度融入文献检索、数据运算、模拟实验等环节，大幅提升科研效率。同时AI可解释性、安全防护技术会不断完善，让智能工具在严谨的学术体系内稳定运行，成为科研创新的强力支撑。</p>
+            </div>
+
+            <div class="think-block human-style">
+                <h3 class="think-title">💭 人文思辨视角</h3>
+                <p>技术终究是工具，人的思考、思想与创造力永远无法被AI替代。面对飞速发展的人工智能，我们既要拥抱技术带来的便利，也要守住本心，拒绝依赖与盲从。平衡技术便利与人文底线，让AI服务于人，而非支配人，是未来长期需要思考的命题。</p>
+            </div>
+
+            <div class="think-block campus-style">
+                <h3 class="think-title">🎓 校园实践视角</h3>
+                <p>未来AI会成为全体学生的常用学习工具。在校学子应当主动学习AI使用规范，分清辅助与作弊的界限。合理利用AI梳理知识、优化文稿，坚决杜绝代写、造假等行为。高校也会不断完善管理制度与检测技术，共建智能时代下清朗的校园学术环境。</p>
+            </div>
+
+            <div class="think-block popular-style">
+                <h3 class="think-title">📢 大众通俗视角</h3>
+                <p>AI会越来越智能，使用门槛也会越来越低，日常学习、工作都能看到它的身影。便利的同时，各类投机取巧的手段也会变多。我们要明白，一时的省事会换来能力的退步，脚踏实地结合工具使用，才是长久发展的正道。</p>
+            </div>
+
+            <div class="think-block academic-style">
+                <h3 class="think-title">📚 专业学术视角</h3>
+                <p>生成式AI正在重塑全球学术研究范式，科研流程、论文创作、成果评审都会迎来变革。未来行业会逐步完善AI使用标注、溯源、追责等规则。科研工作者需与时俱进，善用新技术，同时坚守学术规范与科研诚信，维护整个学术共同体的公平与秩序。</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 意见反馈 -->
+    <div id="feedback" class="section">
+        <div class="title">意见反馈</div>
+        <div class="card">
+            <form id="feedback-form">
+                <input type="text" id="name" placeholder="姓名" required>
+                <select id="identity" required>
+                    <option value="">请选择身份</option>
+                    <option value="本科生">本科生</option>
+                    <option value="研究生">研究生</option>
+                    <option value="教师">教师</option>
+                    <option value="其他">其他</option>
+                </select>
+                <textarea id="opinion" rows="5" placeholder="请输入你的意见或建议..." required></textarea>
+                <button type="submit">提交反馈</button>
+                <div id="form-feedback" class="form-feedback"></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 页脚 -->
+    <footer>
+        © 2026 AI学术公平宣传平台 | 以诚治学，以行守规 | 守护学术公平，共建清朗环境
+    </footer>
+
+    <script>
+        // 展开/收起详情通用函数
+        function toggleDetail(btn) {
+            const detail = btn.nextElementSibling;
+            detail.classList.toggle('show');
+            btn.textContent = detail.classList.contains('show') ? '收起详情' : '展开详情';
+        }
+
+        // 导航栏高亮当前页面
+        const navLinks = document.querySelectorAll('.nav-link');
+        const sections = document.querySelectorAll('.section');
+        
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                const sectionHeight = section.clientHeight;
+                if (scrollY >= (sectionTop - 100)) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href').substring(1) === current) {
+                    link.classList.add('active');
+                }
+            });
+        });
+
+        // 初始化图表（优化数据展示）
+        const chartDom = document.getElementById('chart-container');
+        const myChart = echarts.init(chartDom);
+        const chartOption = {
+            title: { 
+                text: '高校师生AI学术使用合规/违规率对比（%）',
+                left: 'center',
+                textStyle: { color: '#1a365d', fontSize: 16 }
+            },
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: { type: 'shadow' }
+            },
+            legend: {
+                data: ['合规使用', '违规使用'],
+                bottom: 10
+            },
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '15%',
+                top: '15%',
+                containLabel: true
+            },
+            xAxis: {
+                type: 'category',
+                data: ['本科生', '硕士研究生', '博士研究生', '高校教师/科研人员'],
+                axisLabel: { color: '#333' },
+                axisLine: { lineStyle: { color: '#ddd' } }
+            },
+            yAxis: {
+                type: 'value',
+                name: '占比（%）',
+                max: 100,
+                axisLabel: { color: '#333', formatter: '{value}%' },
+                axisLine: { lineStyle: { color: '#ddd' } },
+                splitLine: { lineStyle: { color: '#eee' } }
+            },
+            series: [
+                {
+                    name: '合规使用',
+                    type: 'bar',
+                    data: [70.1, 82.4, 91.3, 98.6],
+                    itemStyle: { color: '#4fc3f7' },
+                    label: {
+                        show: true,
+                        position: 'top',
+                        formatter: '{c}%'
+                    }
+                },
+                {
+                    name: '违规使用',
+                    type: 'bar',
+                    data: [29.9, 17.6, 8.7, 1.4],
+                    itemStyle: { color: '#f44336' },
+                    label: {
+                        show: true,
+                        position: 'top',
+                        formatter: '{c}%'
+                    }
+                }
+            ]
+        };
+        myChart.setOption(chartOption);
+        window.addEventListener('resize', () => myChart.resize());
+
+        // 表单提交处理
+        const feedbackForm = document.getElementById('feedback-form');
+        const formFeedback = document.getElementById('form-feedback');
+        
+        feedbackForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            // 简单验证
+            const name = document.getElementById('name').value.trim();
+            const identity = document.getElementById('identity').value;
+            const opinion = document.getElementById('opinion').value.trim();
+            
+            if (!name || !identity || !opinion) {
+                formFeedback.textContent = '请填写完整的反馈信息！';
+                formFeedback.className = 'form-feedback error';
+                formFeedback.style.display = 'block';
+                setTimeout(() => {
+                    formFeedback.style.display = 'none';
+                }, 3000);
+                return;
+            }
+            
+            // 模拟提交成功
+            formFeedback.textContent = '反馈提交成功！感谢你的宝贵意见。';
+            formFeedback.className = 'form-feedback success';
+            formFeedback.style.display = 'block';
+            
+            // 重置表单
+            feedbackForm.reset();
+            
+            // 3秒后隐藏提示
+            setTimeout(() => {
+                formFeedback.style.display = 'none';
+            }, 3000);
+        });
+
+        // 图片加载失败容错
+        const imgElements = document.querySelectorAll('.img-card img');
+        imgElements.forEach(img => {
+            img.addEventListener('error', () => {
+                img.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23999"><path d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/><path d="M14 10h-4v2h4v-2zm0-4h-4v2h4V6zm0 8h-4v2h4v-2z"/></svg>';
+                img.alt = '图片加载失败';
+            });
+        });
+    </script>
+</body>
+</html>
